@@ -1,40 +1,42 @@
-import sys
+import argparse
 import os
 from pathlib import Path
 import shutil
 
-args = sys.argv
 
-if len(args) < 2:
-    print("Введіть назву папки з якої має відбутись копіювання.")
-    sys.exit(1)
-
-old_folder = args[1]
-new_folder = "dist"
-if len(args) > 2:
-    new_folder = args[2]
-
-
-def read_dir(path: Path):
+def read_dir(src: Path, dst: Path):
     try:
-        if path.is_dir():
-            for child in path.iterdir():
-                read_dir(child)
+        if src.is_dir():
+            for child in src.iterdir():
+                read_dir(child, dst)
         else:
-            file_extension = os.path.splitext(path)[1]
-            if file_extension:
-                file_path = f"{new_folder}/{file_extension.split(".")[1]}"
-                if not os.path.exists(file_path):
-                    os.makedirs(file_path)
-                try:
-                    shutil.copy2(path, file_path)
-                except Exception as error:
-                    print(error)
+            file_extension = os.path.splitext(src)[1].split(".")[1]
+            file_path = Path(f"{dst}/{file_extension}")
+            try:
+                file_path.mkdir(exist_ok=True, parents=True)
+                shutil.copy2(src, file_path)
+            except Exception as error:
+                print(error)
     except Exception as error:
         print(error)
 
 
-if os.path.exists(old_folder):
-    read_dir(Path(old_folder))
-else:
-    print(f"За цим шляхом '{old_folder}' нічого не знайдено.")
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-S", "--source", type=Path, required=True,
+                        help="Папка з якої має відбутись копіювання")
+    parser.add_argument("-O", "--output", type=Path, default=Path("dist"),
+                        help="Папка в якому має відбутись копіювання")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    if os.path.exists(args.source):
+        read_dir(args.source, args.output)
+    else:
+        print(f"За цим шляхом '{args.source}' нічого не знайдено.")
+
+
+if __name__ == "__main__":
+    main()
