@@ -11,12 +11,13 @@ def read_dir(src: Path, dst: Path):
                 read_dir(child, dst)
         else:
             file_extension = src.suffix[1:]
-            file_path = Path(f"{dst}/{file_extension}")
-            try:
-                file_path.mkdir(exist_ok=True, parents=True)
-                shutil.copy2(src, file_path)
-            except Exception as error:
-                print(error)
+            if file_extension:
+                file_path = Path(f"{dst}/{file_extension}")
+                try:
+                    file_path.mkdir(exist_ok=True, parents=True)
+                    shutil.copy2(src, file_path)
+                except Exception as error:
+                    print(error)
     except Exception as error:
         print(error)
 
